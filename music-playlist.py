@@ -1,5 +1,5 @@
 import random
-import pygame  # Import the pygame library for audio playback
+import pygame 
 
 # Class representing a single song node in the linked list
 class SongNode:
@@ -24,7 +24,30 @@ class Playlist:
 
     # Method to add a song to the playlist at a specific position
     def add_song(self, song_key, position=None):
-        # ... (implementation remains the same)
+        if song_key not in self.song_library:
+            print("Song not found in library.")
+            return
+
+        song_data = self.song_library[song_key]
+        new_node = SongNode(song_data["title"], song_data["artist"], song_data["file_path"])
+
+        if not self.head:
+            self.head = new_node
+            return
+
+        if position == 0:
+            new_node.next = self.head
+            self.head = new_node
+            return
+
+        current = self.head
+        index = 0
+        while current.next and (position is None or index < position - 1):
+            current = current.next
+            index += 1
+
+        new_node.next = current.next
+        current.next = new_node
 
     # Method to remove a song from the playlist
     def remove_song(self, target):
@@ -44,9 +67,54 @@ class Playlist:
 
     # Method to play songs in the playlist sequentially (forward)
     def play_forward(self):
+        current = self.head
+        while current:
+            print(f"Playing: {current.title} by {current.artist}")
+            pygame.mixer.music.load(current.file_path)  # Load the song into the mixer
+            pygame.mixer.music.play()  # Start playing the loaded song
+            while pygame.mixer.music.get_busy():  # Wait until the song finishes playing
+                pygame.time.Clock().tick(10)  # Keep the program responsive during playback
+            current = current.next # Move to the next song
 
     # Method to play songs in the playlist sequentially (backward)
     def play_backward(self):
+        songs = [] # Temporary list to store songs for reversing
+        current = self.head
+        while current:
+            songs.append(current)
+            current = current.next
+
+        for song in reversed(songs): # Iterate through songs in reverse order
+            print(f"Playing: {song.title} by {song.artist}")
+            pygame.mixer.music.load(song.file_path)
+            pygame.mixer.music.play()
+            while pygame.mixer.music.get_busy():
+                pygame.time.Clock().tick(10)
 
     # Method to play songs in the playlist in shuffled order
     def shuffle_play(self):
+        songs = []
+        current = self.head
+        while current:
+            songs.append(current)
+            current = current.next
+
+        random.shuffle(songs) # Shuffle the list of songs
+        for song in songs:
+            print(f"Playing: {song.title} by {song.artist}")
+            pygame.mixer.music.load(song.file_path)
+            pygame.mixer.music.play()
+            while pygame.mixer.music.get_busy():
+                pygame.time.Clock().tick(10)
+
+if __name__ == "__main__":
+    my_playlist = Playlist()
+
+    # Add some songs (replace with your actual song keys from the library)
+    my_playlist.add_song("bohemian_rhapsody")
+    my_playlist.add_song("stairway_to_heaven", 0)  # Add at the beginning
+
+    # You can add more songs, remove songs, and then call the playback methods
+    my_playlist.play_forward()
+    # my_playlist.play_backward()
+    # my_playlist.shuffle_play()
